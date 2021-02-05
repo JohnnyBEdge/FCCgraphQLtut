@@ -4,26 +4,14 @@
 const graphql = require('graphql');
 const _ = require('lodash');
 
+const Book = require('../models/book');
+const Author = require('../models/author');
+
 //destructing: taking this variable out of package
 const { 
     GraphQLObjectType, GraphQLString, GraphQLSchema, 
     GraphQLID, GraphQLInt, GraphQLList
 } = graphql;
-
-//dummy data
-const books = [
-    {name: 'book1', genre: 'sci-fi', id: '1', authorId: '1'},
-    {name: 'book2', genre: 'sci-fi', id: '2', authorId: '2'},
-    {name: 'book3', genre: 'fantasy', id: '3', authorId: '3'},
-    {name: 'book4', genre: 'sci-fi', id: '4', authorId: '1'},
-    {name: 'book5', genre: 'sci-fi', id: '5', authorId: '2'},
-    {name: 'book6', genre: 'fantasy', id: '6', authorId: '3'},
-];
-const authors = [
-    {name: 'author1', age: 44, id: '1'},
-    {name: 'author2', age: 43, id: '2'},
-    {name: 'author3', age: 41, id: '3'},
-];
 
 //defining our first type
 const BookType = new GraphQLObjectType({
@@ -38,9 +26,7 @@ const BookType = new GraphQLObjectType({
             type: AuthorType,
             //if user request the author, graphql uses resolve to return author belonging to book
             resolve(parent, args){
-                //parent is the data of the intial query
-                //use it to search authors matching on the authorID
-                return _.find(authors, {id: parent.authorId});
+               return Author.findById(parent.authorId)
             }
         }
     })
@@ -56,9 +42,7 @@ const AuthorType = new GraphQLObjectType({
             //filtered on authID = parentID
             type: new GraphQLList(BookType),
             resolve(parent, args){
-                console.log("PARENT", parent)
-
-                return _.filter(books, {authorId: parent.id})
+                return Book.find({authorId: parent.id})
             }
         }
     })
@@ -73,32 +57,70 @@ const RootQuery = new GraphQLObjectType({
             //these are the arguments that should be passed when querying a book
             args:{id: {type:GraphQLID}},
             resolve(parent, args){
-                //code to get data from DB/ other source
-                return _.find(books,{id:args.id});
+                return Book.findById(args.id)
             }
         },
         author: {
             type: AuthorType,
             args:{id:{type:GraphQLID}},
             resolve(parent, args){
-                return _.find(authors, {id:args.id});
+                return Author.findById(args.id)
             }
         },
         books: {
             type: new GraphQLList(BookType),
             resolve(parent, args){
-                return books;
+                return Book.find({})
             }
         },
         authors: {
             type: new GraphQLList(AuthorType),
             resolve(parent, args){
-                return authors;
+                return Author.find({})
             }
         }
     }
 });
 
+const Mutation = new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+        addAuthor: {
+            type: AuthorType,
+            args: {
+                name: {type: GraphQLString},
+                age: {type: GraphQLInt}
+            },
+            resolve(parent, args){
+                //this is our author model
+                let author = new Author({
+                    name: args.name,
+                    age: args.age
+                });
+                //mongoose save method
+                return author.save();
+            }
+        },
+        addBook: {
+            type: BookType,
+            args: {
+                name: {type: GraphQLString},
+                genre: {type: GraphQLString},
+                authorId: {type: GraphQLString}
+            },
+            resolve(parent, args){
+                let book = new Book({
+                    name: args.name,
+                    authorId: args.authorId,
+                    genre: args.genre
+                });
+                return book.save();
+            }
+        }
+    }
+})
+
 module.exports = new GraphQLSchema({
-    query: RootQuery
+    query: RootQuery,
+    mutation: Mutation
 });
