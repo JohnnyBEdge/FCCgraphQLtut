@@ -10,7 +10,7 @@ const Author = require('../models/author');
 //destructing: taking this variable out of package
 const { 
     GraphQLObjectType, GraphQLString, GraphQLSchema, 
-    GraphQLID, GraphQLInt, GraphQLList
+    GraphQLID, GraphQLInt, GraphQLList, GraphQLNonNull
 } = graphql;
 
 //defining our first type
@@ -88,8 +88,8 @@ const Mutation = new GraphQLObjectType({
         addAuthor: {
             type: AuthorType,
             args: {
-                name: {type: GraphQLString},
-                age: {type: GraphQLInt}
+                name: {type: new GraphQLNonNull(GraphQLString)},
+                age: {type: new GraphQLNonNull(GraphQLInt)}
             },
             resolve(parent, args){
                 //this is our author model
@@ -104,9 +104,9 @@ const Mutation = new GraphQLObjectType({
         addBook: {
             type: BookType,
             args: {
-                name: {type: GraphQLString},
-                genre: {type: GraphQLString},
-                authorId: {type: GraphQLString}
+                name: {type: new GraphQLNonNull(GraphQLString)},
+                genre: {type: new GraphQLNonNull(GraphQLString)},
+                authorId: {type: new GraphQLNonNull(GraphQLString)}
             },
             resolve(parent, args){
                 let book = new Book({
