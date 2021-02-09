@@ -20,8 +20,8 @@ const BookList = (props) => {
             return (<div>Loading...</div>);
         } else {
             return (
-                data.books.map(book => {
-                    return <li>{book.name}</li>
+                data.books.map((book) => {
+                    return <li key={book.id}>{book.name}</li>
                 })
             )
         }
