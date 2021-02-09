@@ -2,11 +2,14 @@ const express = require('express');
 //allows express to understand graphql 
 const {graphqlHTTP} = require('express-graphql');
 const schema = require('./schema/schema');
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const cors = require('cors')
 
 require('dotenv').config()
 const app = express();
 
+//allow cross origin requests
+app.use(cors());
 
 //database connection
 const pw = process.env.DB_PW
